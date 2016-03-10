@@ -16,7 +16,7 @@ mongoose.connect('mongodb://localhost/pingpong');
 var Match     = require('./app/models/match');
 var Ranking     = require('./app/models/ranking');
 
-var MatchService = require('./app/services/MatchService');
+var MatchService = require('./app/services/matchService');
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST

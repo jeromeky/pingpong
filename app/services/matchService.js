@@ -1,6 +1,6 @@
 var Match     = require('../models/match');
 var Ranking     = require('../models/ranking');
-var RankingService = require('./RankingService');
+var RankingService = require('./rankingService');
 
 var MatchService	 = function () {
 
