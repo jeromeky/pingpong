@@ -17,7 +17,7 @@ var RankingService	 = function () {
 
         	if(ranking == null || ranking.length == 0) {
 		        var ranking = new Ranking();
-		        ranking.player = namePlayer;
+		        ranking.player = namePlayer.toLowerCase();
 
 				ranking.numDefeat = 0;
 		       	ranking.totalPoints = 0;
