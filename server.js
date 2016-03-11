@@ -96,7 +96,7 @@ router.route('/')
 		            if (err)
 		                res.send(err);
 		            console.log(rankings);
-		            var message = '<table><tr><th>Player</th><th>Win</th><th>Lost</th><th>Points</th>';
+		            var message = '<table><tr><th>Player</th><th>Win</th><th>Defeat</th><th>Points</th>';
 		            rankings.forEach(function(rank) {
 		            	console.log(rank);
 		            	message += '';

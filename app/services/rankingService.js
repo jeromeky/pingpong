@@ -19,7 +19,7 @@ var RankingService	 = function () {
 		        var ranking = new Ranking();
 		        ranking.player = namePlayer;
 
-				ranking.numLost = 0;
+				ranking.numDefeat = 0;
 		       	ranking.totalPoints = 0;
 		       	ranking.numWin = 0;
 
@@ -27,7 +27,7 @@ var RankingService	 = function () {
 		        	ranking.numWin = 1;	
 		        	ranking.totalPoints = 3;
 		        } else {
-		        	ranking.numLost = 1;
+		        	ranking.numDefeat = 1;
 		        }
 		        
 		        ranking.save();
@@ -37,7 +37,7 @@ var RankingService	 = function () {
         			ranking.numWin += 1;
         			ranking.totalPoints += 3;
         		} else {
-        			ranking.numLost +=1;
+        			ranking.numDefeat +=1;
         			if(ranking.totalPoints > 0) {
         				ranking.totalPoints -= 1;
         			}
