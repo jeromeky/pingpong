@@ -10,14 +10,14 @@ var RankingService	 = function () {
 	 * @return {[type]}            [description]
 	 */	
 	var _recordRanking = function(namePlayer, hasWon, callback) {
-
-		Ranking.findOne({player : namePlayer.toLowerCase()}, function(err, ranking) {
+ 		namePlayer= namePlayer.toLowerCase();
+		Ranking.findOne({player : namePlayer}, function(err, ranking) {
 			if(err)
 				return callback(err, false);
 
         	if(ranking == null || ranking.length == 0) {
 		        var ranking = new Ranking();
-		        ranking.player = namePlayer.toLowerCase();
+		        ranking.player = namePlayer;
 
 				ranking.numDefeat = 0;
 		       	ranking.totalPoints = 0;
@@ -46,7 +46,6 @@ var RankingService	 = function () {
         		ranking.save();
         	}
 
-        	console.log('here finish;');
 			return callback(null, true);
 
         });
