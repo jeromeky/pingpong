@@ -3,6 +3,7 @@ var Schema       = mongoose.Schema;
 
 var RankingSchema   = new Schema({
     player: String,
+    playerLower:String,
     numWin: Number,
     numDefeat: Number,
     pointsFor: Number,
