@@ -97,7 +97,7 @@ router.route('/')
 		            if (err)
 		                res.send(err);
 
-		            var message = '<table><tr><th>Player</th><th>W</th><th>D</th><th>F</th><th>A</th><th>D</th><th>Pts</th>';
+		            var message = '<table><tr><th>Player</th><th>Win</th><th>Def</th><th>+</th><th>-</th><th>+/-</th><th>Pts</th>';
 		            rankings.forEach(function(rank) {
 
 		            	message += '';
@@ -106,7 +106,9 @@ router.route('/')
 		            	rank.numLost = (rank.numLost == null) ? 0 : rank.numLost;
 		            	rank.totalPoints = (rank.totalPoints == null) ? 0 : rank.totalPoints;
 
-		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', rank.player, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
+		            	upperCaseName = rank.player.charAt(0).toUpperCase() + rank.player.slice(1);
+
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
 		            });
 
 		            message += '</table>';
@@ -120,20 +122,33 @@ router.route('/')
 
 
     // var promises = [];
+    // 
+	            var incomingMessage = req.body.item.message.message;
+				params = incomingMessage.split(' ');
+				var showId = false;
+				if(params.length > 2 && params[2] == 'showId') {
+					showId = true;
+				}
+
 
 		    	MatchService.getHistory(function(err, matches) {
 		            // var deferred = $q.defer();
 		            // deferred.resolve(currentNewRequests);
 		            // return deferred.promise;
 
+
 		            if (err)
 		                res.json({message: err});
 
 		            var message = '<ol>';
+
+
 		            matches.forEach(function(match) {
-
-
-		            	message += util.format('<li>%s : <b>%s</b> %s - %s <b> %s </b></li>', match.date.toLocaleDateString(), match.player1, match.score1, match.score2, match.player2);
+		            	message += util.format('<li>%s : <b>%s</b> %s - %s <b> %s </b>', match.date.toLocaleDateString(), match.player1, match.score1, match.score2, match.player2);
+		            	if(showId) {
+		            		message += util.format(' // <i>%s</i> //', match._id);
+		            	}
+		            	message += "</li>";
 		            });
 
 		            message += '</ol>';
@@ -145,14 +160,45 @@ router.route('/')
 				break;
 			case 'cancel':
 
-			console.log('really?');
+				var message = req.body.item.message.message;
 
-				MatchService.cancelLastMatch(function(err, successMessage) {
-					if(err) {
-						res.json({message: err});
+				messages = message.split(' ');
+
+				matchId = 0;
+
+				if(messages.length > 2) {
+					matchId = messages[2];	
+				}
+
+				if(matchId) {
+
+					//Only ME can delete with ID
+					if(req.body.item.message.from.id == 667354) {
+						MatchService.cancelWithId(matchId, function(err, successMessage) {
+							if(err) {
+								res.json({message: err});
+							}
+							res.json({message: successMessage})
+						});
+					} else {
+						res.json({message: 'Only Jerome can cancel a match !'});
 					}
-					res.json({message: successMessage})
-				});
+
+					
+				} else {
+					MatchService.cancelLastMatch(function(err, successMessage) {
+						if(err) {
+							res.json({message: err});
+						}
+						res.json({message: successMessage})
+					});
+				}
+
+
+		        
+
+
+				
 				break;
 			default:
 				res.json({ message: 'Incorrect command!' });
@@ -191,4 +237,3 @@ app.listen(port);
 
 
 
-console.log('Magic happens on port ' + port);

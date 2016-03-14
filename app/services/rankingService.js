@@ -11,17 +11,14 @@ var RankingService	 = function () {
 	 */	
 	var _recordRanking = function(namePlayer, pointsFor, pointsAgainst, hasWon, callback) {
 
-		console.log('match to record');
-		console.log(namePlayer);
-
- 		namePlayer= namePlayer.toLowerCase();
-		Ranking.findOne({player : namePlayer}, function(err, ranking) {
+		Ranking.findOne({playerLower : namePlayer.toLowerCase()}, function(err, ranking) {
 			if(err)
 				return callback(err, false);
 
         	if(ranking == null || ranking.length == 0) {
 		        var ranking = new Ranking();
 		        ranking.player = namePlayer;
+		        ranking.playerLower = namePlayer.toLowerCase();
 
 				ranking.numDefeat = 0;
 		       	ranking.totalPoints = 0;
@@ -67,10 +64,10 @@ var RankingService	 = function () {
 	var _updateRanking = function(player, hasWon, pointsFor, pointsAgainst) {
 		Ranking.findOne({player : player}, function(err, ranking) {
 			if(err)
-				return callback(err);
+				return;
 
 			if(!ranking)
-				return callback('non existing ranking');
+				return;
 
 			if(hasWon) {
 				ranking.numWin--;

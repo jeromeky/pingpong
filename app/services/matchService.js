@@ -60,12 +60,9 @@ var MatchService	 = function () {
 	var _cancelLastMatch = function(callback) {
 		//Find the last match
 		//
-		console.log('cancel last match');
 
 		Match.findOne({}, {}, {sort: {'date' : -1}}, function(err, match) {
             
-console.log(match);
-
             if (err)
             	return callback(err);
 
@@ -76,10 +73,8 @@ console.log(match);
             //Only remove last match if it was recorded in the last 10 minutes.
             var tenMinAgo = new Date();
 
-            console.log('now : ' + tenMinAgo);
 			tenMinAgo.setMinutes(tenMinAgo.getMinutes() - 105);
 
-			console.log('ten min ago : ' + tenMinAgo);
 
 			if(match.date > tenMinAgo) {
 				message = util.format('%s : <b>%s</b> %s - %s <b> %s </b> was removed', match.date.toLocaleDateString(), match.player1, match.score1, match.score2, match.player2);
@@ -92,7 +87,6 @@ console.log(match);
 
 				return callback(null, message);
 			} else {
-				console.log('or not');
 				return callback('Only matches in the last 10 minutes can be cancelled');
 			}
 
@@ -102,10 +96,38 @@ console.log(match);
 
 	}
 
+
+	var _cancelWithId = function(id, callback) {
+		//Find the last match
+		//
+
+		Match.findById(id, function(err, match) {
+            
+            if (err)
+            	return callback(err);
+
+            if (!match) {
+            	return callback('nothing to cancel');
+            }
+
+			RankingService.updateRanking(match.player1, match.score1 > match.score2, match.score1, match.score2);
+			RankingService.updateRanking(match.player2, match.score2 > match.score1, match.score2, match.score1);
+
+			message = util.format('%s : <b>%s</b> %s - %s <b> %s </b> was removed', match.date.toLocaleDateString(), match.player1, match.score1, match.score2, match.player2);
+
+			match.remove();
+
+            return callback(null, message);
+
+        });
+
+	}
+
 	return {
 		recordNewMatch : _recordNewMatch,
 		getHistory : _getHistory,
 		cancelLastMatch : _cancelLastMatch,
+		cancelWithId : _cancelWithId,
 	}
 }();
 
