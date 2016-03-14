@@ -67,7 +67,7 @@ router.route('/')
 				MatchService.recordNewMatch(match, function(err, success) {
 
 					if(err) 
-						res.json({message: err});
+						res.json({message: err, color : 'red'});
 
 					if(success) {
 						res.json({ message: 'match created!' });
@@ -97,7 +97,7 @@ router.route('/')
 		            if (err)
 		                res.send(err);
 
-		            var message = '<table><tr><th>Player</th><th>Win</th><th>Def</th><th>+</th><th>-</th><th>+/-</th><th>Pts</th>';
+		            var message = '<table><tr><th><strong>Player</strong></th><th>Win</th><th>Def</th><th>+</th><th>-</th><th>+/-</th><th>Pts</th>';
 		            rankings.forEach(function(rank) {
 
 		            	message += '';
@@ -108,7 +108,7 @@ router.route('/')
 
 		            	upperCaseName = rank.player.charAt(0).toUpperCase() + rank.player.slice(1);
 
-		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th style="font-size : 250%">%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
 		            });
 
 		            message += '</table>';
@@ -176,19 +176,19 @@ router.route('/')
 					if(req.body.item.message.from.id == 667354) {
 						MatchService.cancelWithId(matchId, function(err, successMessage) {
 							if(err) {
-								res.json({message: err});
+								res.json({message: err, color:red});
 							}
 							res.json({message: successMessage})
 						});
 					} else {
-						res.json({message: 'Only Jerome can cancel a match !'});
+						res.json({message: 'Only @Jerome can cancel a match !', message_format : 'text', color: 'red'});
 					}
 
 					
 				} else {
 					MatchService.cancelLastMatch(function(err, successMessage) {
 						if(err) {
-							res.json({message: err});
+							res.json({message: err, color : red});
 						}
 						res.json({message: successMessage})
 					});
