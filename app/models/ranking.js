@@ -5,6 +5,9 @@ var RankingSchema   = new Schema({
     player: String,
     numWin: Number,
     numDefeat: Number,
+    pointsFor: Number,
+    pointsAgainst: Number,
+    pointsDifference: Number,
     totalPoints: Number
 });
 

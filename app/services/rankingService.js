@@ -9,7 +9,11 @@ var RankingService	 = function () {
 	 * @param  {Function} callback [description]
 	 * @return {[type]}            [description]
 	 */	
-	var _recordRanking = function(namePlayer, hasWon, callback) {
+	var _recordRanking = function(namePlayer, pointsFor, pointsAgainst, hasWon, callback) {
+
+		console.log('match to record');
+		console.log(namePlayer);
+
  		namePlayer= namePlayer.toLowerCase();
 		Ranking.findOne({player : namePlayer}, function(err, ranking) {
 			if(err)
@@ -23,6 +27,10 @@ var RankingService	 = function () {
 		       	ranking.totalPoints = 0;
 		       	ranking.numWin = 0;
 
+	        	ranking.pointsFor = pointsFor;
+	        	ranking.pointsAgainst = pointsAgainst;
+	        	ranking.pointsDifference = pointsFor - pointsAgainst;
+
 		        if(hasWon) {
 		        	ranking.numWin = 1;	
 		        	ranking.totalPoints = 3;
@@ -32,6 +40,10 @@ var RankingService	 = function () {
 		        
 		        ranking.save();
         	} else {
+
+	        	ranking.pointsFor += pointsFor;
+	        	ranking.pointsAgainst += pointsAgainst;
+	        	ranking.pointsDifference += pointsFor - pointsAgainst;
 
         		if(hasWon) {
         			ranking.numWin += 1;
@@ -52,8 +64,38 @@ var RankingService	 = function () {
 
 	}
 
+	var _updateRanking = function(player, hasWon, pointsFor, pointsAgainst) {
+		Ranking.findOne({player : player}, function(err, ranking) {
+			if(err)
+				return callback(err);
+
+			if(!ranking)
+				return callback('non existing ranking');
+
+			if(hasWon) {
+				ranking.numWin--;
+				ranking.totalPoints -= 3;
+			} else {
+				ranking.numDefeat--;
+				ranking.totalPoints -= 1;
+			}
+
+			ranking.pointsFor -= pointsFor;
+			ranking.pointsAgainst -= pointsAgainst;
+			ranking.pointsDifference -= pointsFor - pointsAgainst;
+
+
+
+			if(ranking.totalPoints < 0) {
+				ranking.totalPoints = 0;
+			}
+			ranking.save();
+		});
+	}
+
 	return {
 		recordRanking : _recordRanking,
+		updateRanking : _updateRanking,
 	}
 }();
 

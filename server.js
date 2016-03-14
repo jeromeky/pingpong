@@ -33,7 +33,6 @@ router.route('/')
 
     .post(function(req, res) {
         
-    	console.log(req.body);
 
     	var message = req.body.item.message.message;
 
@@ -53,7 +52,7 @@ router.route('/')
 
 				var match = new Match();      // create a new instance of the Bear model
 		        match.player1 = req.body.name;  // set the bears name (comes from the request)
-		        console.log(req.body.item.message.message);
+
 
 		        var score = req.body.item.message.message;
 		        score = score.split(' ');
@@ -66,8 +65,10 @@ router.route('/')
 		        match.date = new Date();
 
 				MatchService.recordNewMatch(match, function(err, success) {
-					console.log('success is :' + success);
-					console.log(success);
+
+					if(err) 
+						res.json({message: err});
+
 					if(success) {
 						res.json({ message: 'match created!' });
 					}
@@ -95,17 +96,17 @@ router.route('/')
 		    	Ranking.find({}).sort({totalPoints:-1}).limit(10).execFind(function(err, rankings) {
 		            if (err)
 		                res.send(err);
-		            console.log(rankings);
-		            var message = '<table><tr><th>Player</th><th>Win</th><th>Defeat</th><th>Points</th>';
+
+		            var message = '<table><tr><th>Player</th><th>W</th><th>D</th><th>F</th><th>A</th><th>D</th><th>Pts</th>';
 		            rankings.forEach(function(rank) {
-		            	console.log(rank);
+
 		            	message += '';
 
 		            	rank.numWin = (rank.numWin == null) ? 0 : rank.numWin;
 		            	rank.numLost = (rank.numLost == null) ? 0 : rank.numLost;
 		            	rank.totalPoints = (rank.totalPoints == null) ? 0 : rank.totalPoints;
 
-		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', rank.player, rank.numWin, rank.numLost, rank.totalPoints);
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', rank.player, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
 		            });
 
 		            message += '</table>';
@@ -126,11 +127,11 @@ router.route('/')
 		            // return deferred.promise;
 
 		            if (err)
-		                res.send(err);
+		                res.json({message: err});
 
 		            var message = '<ol>';
 		            matches.forEach(function(match) {
-		            	console.log(match);
+
 
 		            	message += util.format('<li>%s : <b>%s</b> %s - %s <b> %s </b></li>', match.date.toLocaleDateString(), match.player1, match.score1, match.score2, match.player2);
 		            });
@@ -142,6 +143,17 @@ router.route('/')
 		        });
 
 				break;
+			case 'cancel':
+
+			console.log('really?');
+
+				MatchService.cancelLastMatch(function(err, successMessage) {
+					if(err) {
+						res.json({message: err});
+					}
+					res.json({message: successMessage})
+				});
+				break;
 			default:
 				res.json({ message: 'Incorrect command!' });
 		}
@@ -149,42 +161,24 @@ router.route('/')
 		return;
 
 
-		console.log('LOL');
-
-        
-
-
 
         
     })
 
     .get(function(req, res) {
-    	console.log(Match);
 
-    	Match.find({}).sort({date:-1}).limit(10).execFind(function(err, matches) {
+
+    	Match.find({}).sort({date:-1}).limit(10).execFind(function(err, match) {
             if (err)
                 res.send(err);
+
+
 
             res.json(matches);
         });
     });
 
 
-router.route('/ranking')
-
-    .get(function(req, res) {
-    	console.log(Match);
-
-    	Ranking.find({}).sort({date:-1}).limit(10).execFind(function(err, rankings) {
-            if (err)
-                res.send(err);
-
-            res.json(rankings);
-        });
-    });
-
-
-// more routes for our API will happen here
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
