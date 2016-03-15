@@ -11,12 +11,15 @@ var util = require('util');
 
 var mongoose   = require('mongoose');
 mongoose.connect('mongodb://localhost/pingpong');
+var utf8 = require('utf8');
 
 
 var Match     = require('./app/models/match');
 var Ranking     = require('./app/models/ranking');
+var News     = require('./app/models/news');
 
 var MatchService = require('./app/services/matchService');
+var NewsService = require('./app/services/newsService');
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -97,7 +100,7 @@ router.route('/')
 		            if (err)
 		                res.send(err);
 
-		            var message = '<table><tr><th><strong>Player</strong></th><th>Win</th><th>Def</th><th>+</th><th>-</th><th>+/-</th><th>Pts</th>';
+		            var message = '<table><tr><th><strong>Player</strong></th><th>Win</th><th>Def</th><th>+/-</th><th>Pts</th>';
 		            rankings.forEach(function(rank) {
 
 		            	message += '';
@@ -108,7 +111,7 @@ router.route('/')
 
 		            	upperCaseName = rank.player.charAt(0).toUpperCase() + rank.player.slice(1);
 
-		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th style="font-size : 250%">%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsFor, rank.pointsAgainst, rank.pointsDifference, rank.totalPoints);
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsDifference, rank.totalPoints);
 		            });
 
 		            message += '</table>';
@@ -196,12 +199,58 @@ router.route('/')
 
 
 		        
+			case 'news' :
 
+				var message = req.body.item.message.message;
+
+				messages = message.split(' ');
+
+				if(messages[2] == 'add') {
+
+					message = message.replace("/pingpong news add", "");
+
+					var news = new News();
+					news.message = message;
+					news.date = new Date();
+					news.reporter = req.body.item.message.from.mention_name;
+
+					NewsService.insertNews(news, function(err, success) {
+						res.json({ message: 'News saved !' });
+					});
+				} else if(messages[2] == 'list'){
+					NewsService.getNews(function(err, news) {
+			            // var deferred = $q.defer();
+			            // deferred.resolve(currentNewRequests);
+			            // return deferred.promise;
+
+
+			            if (err)
+			                res.json({message: err});
+
+			            var message = '<ol>';
+
+
+			            news.forEach(function(loopNews) {
+			            	message += util.format('<li>%s : <b>%s</b> - %s</li>', loopNews.date.toLocaleDateString(), loopNews.reporter, loopNews.message);
+			            });
+
+			            message += '</ol>';
+
+
+						res.json({message_format : 'html', message : message});
+			        });
+				} else {
+					res.json({ message: 'Incorrect command!', color:'red' });
+				}
+
+				
+
+				
 
 				
 				break;
 			default:
-				res.json({ message: 'Incorrect command!' });
+				res.json({ message: 'Incorrect command!', color:'red' });
 		}
 
 		return;
