@@ -196,7 +196,7 @@ router.route('/')
 						res.json({message: successMessage})
 					});
 				}
-
+				break;
 
 		        
 			case 'news' :
