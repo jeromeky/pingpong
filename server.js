@@ -17,9 +17,11 @@ var utf8 = require('utf8');
 var Match     = require('./app/models/match');
 var Ranking     = require('./app/models/ranking');
 var News     = require('./app/models/news');
+var Kudos     = require('./app/models/kudos');
 
 var MatchService = require('./app/services/matchService');
 var NewsService = require('./app/services/newsService');
+var KudosService = require('./app/services/kudosService');
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -32,7 +34,7 @@ var port = process.env.PORT || 8080;        // set our port
 // =============================================================================
 var router = express.Router();              // get an instance of the express Router
 
-router.route('/')
+router.route('/pingpong')
 
     .post(function(req, res) {
         
@@ -273,7 +275,146 @@ router.route('/')
         });
     });
 
+router.route('/kudos')
 
+    .post(function(req, res) {
+        
+
+
+
+		var values = ['customer','solution','iterate','data','guru','div&unique','passion'];
+
+    	var message = req.body.item.message.message;
+		var split = message.split(' ');
+
+
+
+		switch(split[1]) {
+
+			case 'list' :
+
+				console.log(req.body.item.room);
+				//Only ME can delete with ID
+				
+				if(req.body.item.room.id != 2694937) {
+					res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
+					return;
+				}
+
+				if(req.body.item.message.from.id != 667354 && req.body.item.message.from.id != 3035229) {
+					//TODO CHECK ROOM TOO
+					res.json({message: 'You are not authorized to list Kudos', message_format : 'text', color: 'red'});
+					return;
+				}
+
+
+				KudosService.getKudos(function(err, kudos) {
+		            if (err)
+		                res.json({message: err});
+
+		            var message = '<ol>';
+
+
+		            kudos.forEach(function(kudo) {
+		            	message += util.format('<li>%s : %s gives point to <b>%s</b> for <b>%s</b> - %s', kudo.date.toLocaleDateString(), kudo.reporter, kudo.nominate, kudo.value, kudo.message);
+		            	message += "</li>";
+		            });
+
+		            message += '</ol>';
+
+
+					res.json({message_format : 'html', message : message});
+
+		        });
+				break;
+			case 'help' :
+				message = "Commands available are : ";
+				message += "<ul>"+
+								"<li>"+
+									"/TODO"+
+								"</li>"+
+							"</ul>";
+				res.json({message_format : 'html', message : message});
+
+				break;
+			default:
+				//Message should be like this : 
+				//
+				// /kudos @Annie (solution) An example message
+
+				if(split.length < 3) {
+					//Missing something
+					res.json({ message: 'Your command is incorrect !', color:'red' });
+					return;
+				}
+
+				//Validate the message
+				var nominate = split[1].replace('@', '');
+				var value = split[2].replace('(','').replace(')','');
+				var reporter = req.body.item.message.from.mention_name;
+				var reporterId = req.body.item.message.from.id;
+				var message;
+
+				if(split.length == 3 ) {
+					message = 'no reason';
+				} else {
+					message = split.splice(3, split.length).join(' ');	
+				}
+				
+
+
+				//Check if value is correct
+				if(values.indexOf(value) == -1) {
+					res.json({ message: 'The value is incorrect !', color:'red' });
+					return;
+				}
+
+				//Check if nominate != reporter
+				if(nominate == reporter) {
+					res.json({ message: 'You can\'t give yourself a point !', color:'red' });	
+					return;
+				}
+
+				var kudos = new Kudos();
+				kudos.date = new Date();
+				kudos.reporter = reporter;
+				kudos.nominate = nominate;
+				kudos.message = message;
+				kudos.value = value;
+				kudos.reporterId = reporterId;
+
+				console.log(kudos);
+				console.log(reporterId);
+
+				KudosService.insertKudos(kudos, function(err, success) {
+					res.json({ message: 'Kudos saved !' });
+				});
+
+				
+			break;
+
+		}
+		// res.json({ message: 'Kudos wasn\'t save, please try again !', color:'red' });
+		return;
+
+
+
+
+        
+    })
+
+    .get(function(req, res) {
+
+
+    	Kudos.find({}).sort({date:-1}).limit(10).execFind(function(err, kudos) {
+            if (err)
+                res.send(err);
+
+
+
+            res.json(kudos);
+        });
+    });
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
@@ -282,7 +423,3 @@ app.use('/api', router);
 // START THE SERVER
 // =============================================================================
 app.listen(port);
-
-
-
-
