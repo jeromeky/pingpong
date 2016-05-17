@@ -331,7 +331,10 @@ router.route('/kudos')
 				message = "Commands available are : ";
 				message += "<ul>"+
 								"<li>"+
-									"/TODO"+
+									"/kudos @name (value) reason of the kudos"+
+								"</li>"+
+								"<li>"+
+									"i.e : /kudos @jerome (solution) a simple reason"+
 								"</li>"+
 							"</ul>";
 				res.json({message_format : 'html', message : message});
