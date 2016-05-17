@@ -281,6 +281,7 @@ router.route('/kudos')
         
 
 		var values = ['customer','solution','iterate','data','guru','different','nurture'];
+		var valuesToShow = ['(customer)','(solution)','(iterate)','(data)','(guru)','(different)','(nurture)'];
 
     	var message = req.body.item.message.message;
 		var split = message.split(' ');
@@ -330,7 +331,7 @@ router.route('/kudos')
 									"/kudos @name (value) reason of the kudos. i.e : /kudos @jerome (solution) a simple reason"+
 								"</li>"+
 								"<li>"+
-									"values are : " + values.join(' ') +
+									"values are : " + valuesToShow.join(' ') +
 								"</li>"+
 							"</ul>";
 				res.json({message_format : 'html', message : message});
@@ -364,7 +365,7 @@ router.route('/kudos')
 
 				//Check if value is correct
 				if(values.indexOf(value) == -1) {
-					res.json({ message: 'The value is incorrect ! Correct values are : ' + values.join(' '), color:'red' });
+					res.json({ message: 'The value is incorrect ! Correct values are : ' + valuesToShow.join(' '), color:'red' });
 					return;
 				}
 
