@@ -280,14 +280,10 @@ router.route('/kudos')
     .post(function(req, res) {
         
 
-
-
 		var values = ['customer','solution','iterate','data','guru','different','nurture'];
 
     	var message = req.body.item.message.message;
 		var split = message.split(' ');
-
-
 
 		switch(split[1]) {
 
@@ -353,7 +349,7 @@ router.route('/kudos')
 
 				//Validate the message
 				var nominate = split[1].replace('@', '');
-				var value = split[2].replace('(','').replace(')','').toLowerCase();
+				var value = split[2].replace('(','').replace(')','').replace('[','').replace(']','').toLowerCase();
 				var reporter = req.body.item.message.from.mention_name;
 				var reporterId = req.body.item.message.from.id;
 				var message;
