@@ -282,7 +282,7 @@ router.route('/kudos')
 
 
 
-		var values = ['customer','solution','iterate','data','guru','div&unique','passion'];
+		var values = ['customer','solution','iterate','data','guru','different','nurture'];
 
     	var message = req.body.item.message.message;
 		var split = message.split(' ');
@@ -331,10 +331,10 @@ router.route('/kudos')
 				message = "Commands available are : ";
 				message += "<ul>"+
 								"<li>"+
-									"/kudos @name (value) reason of the kudos"+
+									"/kudos @name (value) reason of the kudos. i.e : /kudos @jerome (solution) a simple reason"+
 								"</li>"+
 								"<li>"+
-									"i.e : /kudos @jerome (solution) a simple reason"+
+									"values are : " + values.join(' ') +
 								"</li>"+
 							"</ul>";
 				res.json({message_format : 'html', message : message});
@@ -353,7 +353,7 @@ router.route('/kudos')
 
 				//Validate the message
 				var nominate = split[1].replace('@', '');
-				var value = split[2].replace('(','').replace(')','');
+				var value = split[2].replace('(','').replace(')','').toLowerCase();
 				var reporter = req.body.item.message.from.mention_name;
 				var reporterId = req.body.item.message.from.id;
 				var message;
@@ -368,7 +368,7 @@ router.route('/kudos')
 
 				//Check if value is correct
 				if(values.indexOf(value) == -1) {
-					res.json({ message: 'The value is incorrect !', color:'red' });
+					res.json({ message: 'The value is incorrect ! Correct values are : ' + values.join(' '), color:'red' });
 					return;
 				}
 
