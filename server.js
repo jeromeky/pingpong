@@ -279,9 +279,9 @@ router.route('/kudos')
 
     .post(function(req, res) {
         
-
 		var values = ['customer','solution','iterate','data','guru','different','nurture'];
 		var valuesToShow = ['(customer)','(solution)','(iterate)','(data)','(guru)','(different)','(nurture)'];
+		var maxKudosPerMonth = 3;
 
     	var message = req.body.item.message.message;
 		var split = message.split(' ');
@@ -290,13 +290,12 @@ router.route('/kudos')
 
 			case 'list' :
 
-				console.log(req.body.item.room);
 				//Only ME can delete with ID
 				
-				if(req.body.item.room.id != 2694937) {
-					res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
-					return;
-				}
+				// if(req.body.item.room.id != 2694937) {
+					// res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
+					// return;
+				// }
 
 				if(req.body.item.message.from.id != 667354 && req.body.item.message.from.id != 3035229) {
 					//TODO CHECK ROOM TOO
@@ -360,8 +359,6 @@ router.route('/kudos')
 				} else {
 					message = split.splice(3, split.length).join(' ');	
 				}
-				
-
 
 				//Check if value is correct
 				if(values.indexOf(value) == -1) {
@@ -383,12 +380,24 @@ router.route('/kudos')
 				kudos.value = value;
 				kudos.reporterId = reporterId;
 
-				console.log(kudos);
-				console.log(reporterId);
 
-				KudosService.insertKudos(kudos, function(err, success) {
-					res.json({ message: 'Kudos saved !' });
-				});
+				var now = new Date();
+				var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+				var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+				Kudos.count({reporterId: reporterId, date : {"$gte" : firstDay, "$lt" : lastDay}}, function(err, c) {
+					if(c == maxKudosPerMonth) {
+						res.json({ message: 'You already gave all your kudos for this month', color:'red' });	
+						return;
+					}
+
+					KudosService.insertKudos(kudos, function(err, success) {
+						res.json({ message: 'Kudos saved !' });
+					});
+
+
+			    });
+
 
 				
 			break;
@@ -404,16 +413,7 @@ router.route('/kudos')
     })
 
     .get(function(req, res) {
-
-
-    	Kudos.find({}).sort({date:-1}).limit(10).execFind(function(err, kudos) {
-            if (err)
-                res.send(err);
-
-
-
-            res.json(kudos);
-        });
+		res.json({'message' : 'ok'});
     });
 
 // REGISTER OUR ROUTES -------------------------------
