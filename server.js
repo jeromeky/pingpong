@@ -292,10 +292,10 @@ router.route('/kudos')
 
 				//Only ME can delete with ID
 				
-				// if(req.body.item.room.id != 2694937) {
-					// res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
-					// return;
-				// }
+				if(req.body.item.room.id != 2694937) {
+					res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
+					return;
+				}
 
 				if(req.body.item.message.from.id != 667354 && req.body.item.message.from.id != 3035229) {
 					//TODO CHECK ROOM TOO
