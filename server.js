@@ -384,6 +384,9 @@ router.route('/kudos')
 				var now = new Date();
 				var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 				var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+				lastDay.setHours(23);
+				lastDay.setMinutes(59);
+				lastDay.setSeconds(59);
 
 				Kudos.count({reporterId: reporterId, date : {"$gte" : firstDay, "$lt" : lastDay}}, function(err, c) {
 					if(c == maxKudosPerMonth) {
