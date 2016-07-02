@@ -12,6 +12,7 @@ var util = require('util');
 var mongoose   = require('mongoose');
 mongoose.connect('mongodb://localhost/pingpong');
 var utf8 = require('utf8');
+var moment = require('moment');
 
 
 var Match     = require('./app/models/match');
@@ -22,6 +23,7 @@ var Kudos     = require('./app/models/kudos');
 var MatchService = require('./app/services/matchService');
 var NewsService = require('./app/services/newsService');
 var KudosService = require('./app/services/kudosService');
+
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -289,8 +291,6 @@ router.route('/kudos')
 		switch(split[1]) {
 
 			case 'list' :
-
-				//Only ME can delete with ID
 				
 				if(req.body.item.room.id != 2694937) {
 					res.json({message: 'Incorrect room to list Kudos', message_format : 'text', color: 'red'});
@@ -298,7 +298,6 @@ router.route('/kudos')
 				}
 
 				if(req.body.item.message.from.id != 667354 && req.body.item.message.from.id != 3035229) {
-					//TODO CHECK ROOM TOO
 					res.json({message: 'You are not authorized to list Kudos', message_format : 'text', color: 'red'});
 					return;
 				}
@@ -327,6 +326,9 @@ router.route('/kudos')
 				message = "Commands available are : ";
 				message += "<ul>"+
 								"<li>"+
+									"/kudos remaining"+
+								"</li>"+
+								"<li>"+
 									"/kudos @name (value) reason of the kudos. i.e : /kudos @jerome (solution) a simple reason"+
 								"</li>"+
 								"<li>"+
@@ -336,6 +338,84 @@ router.route('/kudos')
 				res.json({message_format : 'html', message : message});
 
 				break;
+			case 'tally' :
+
+				var now = moment();
+
+				//Set first day of the current month by default.
+				var momentBeginDate = moment().startOf('month');
+				var momentEndDate;
+
+				customBeginDate = moment(split[2], "DD/MM/YYYY", true);
+				customEndDate = moment(split[3], "DD/MM/YYYY", true);
+
+				if(customBeginDate.isValid()) {
+					momentBeginDate = customBeginDate.startOf('day');
+				}
+
+				if(customEndDate.isValid()) {
+					momentEndDate = customEndDate.endOf('day');
+				} else {
+					//Need to do a clone
+					momentEndDate = momentBeginDate.clone().endOf('month');
+				}
+
+				var beginDate = momentBeginDate.startOf('day').toDate();
+				var endDate = momentEndDate.endOf('day').toDate();
+
+				Kudos.aggregate([
+					{$match: {date : {"$gte" : beginDate, "$lt" : endDate}}},
+
+					{$group: {
+						'_id': '$nominate',
+						'count': {$sum: 1}
+					}},
+					{ $sort : { 'count' : -1 } },
+
+				], function(err, results) {
+
+					if(err) 
+		                res.json({message: err});
+
+
+
+		            var message = momentBeginDate.format("dddd, MMMM Do YYYY, h:mm:ss a") + ' - '+ momentEndDate.format("dddd, MMMM Do YYYY, h:mm:ss a") + '<ol>';
+
+
+		            results.forEach(function(result) {
+		            	message += util.format('<li><b>%s</b> : %s points', result._id, result.count);
+		            	message += "</li>";
+		            });
+
+		            message += '</ol>';
+
+					res.json({message_format : 'html', message : message});
+
+					
+				});
+
+				break;
+
+			case 'remaining':
+
+				//Set first day of the current month by default.
+				var firstDay = moment().startOf('month').toDate();
+				var lastDay = moment().endOf('month').toDate();
+
+				var reporterId = req.body.item.message.from.id;
+
+				Kudos.count({reporterId: reporterId, date : {"$gte" : firstDay, "$lt" : lastDay}}, function(err, c) {
+					remaining = maxKudosPerMonth - c;
+
+					if(remaining == 0) {
+						res.json({ message: 'You already used all of your kudos this month :(', color:'red' });	
+					}
+					res.json({ message: 'You still have ' + remaining + ' kudos for this month', color:'yellow' });
+
+			    });
+
+				break;
+
 			default:
 				//Message should be like this : 
 				//
@@ -383,6 +463,9 @@ router.route('/kudos')
 
 				var now = new Date();
 				var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+				firstDay.setHours(00);
+				firstDay.setMinutes(00);
+				firstDay.setSeconds(01);
 				var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 				lastDay.setHours(23);
 				lastDay.setMinutes(59);
