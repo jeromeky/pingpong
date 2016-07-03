@@ -1,7 +1,9 @@
 var Match     = require('../models/match');
-var Ranking     = require('../models/ranking');
+var Ranking     = require('../models/rankingv2');
 var RankingService = require('./rankingService');
 var util = require('util');
+var async = require('async');
+var elo = require('elo-rank')(15);
 
 var MatchService	 = function () {
 
@@ -22,15 +24,45 @@ var MatchService	 = function () {
             if (err)
             	return callback(err, false);
 
-            RankingService.recordRanking(match.player1, match.score1, match.score2, match.score1 > match.score2, function(err, success) {
-            	if(success) {
-            		RankingService.recordRanking(match.player2, match.score2, match.score1, match.score2 > match.score1, function(err, success) {
-            			if(success) {
-            				return callback(null, true);
-            			}
+            var locals = {};
+
+            async.parallel([
+            	//Load player1 elo
+            	function(callback) {
+            		RankingService.getPlayerElo(match.player1, function(err, elo) {
+            			locals.player1 = elo;
+            			callback();
             		});
-            	}
-            });
+            		
+            	},
+
+            	//Load player2 elo
+            	function(callback) {
+            		RankingService.getPlayerElo(match.player2, function(err, elo) {
+            			locals.player2 = elo;
+            			callback();
+            		});
+            		
+            	},
+            	
+
+            	], function(err) {
+
+            		if (err) return next(err);
+
+
+            		var expectedScore1 = elo.getExpected(locals.player1, locals.player2);
+					var expectedScore2 = elo.getExpected(locals.player2, locals.player1);
+
+
+					elo1 = elo.updateRating(expectedScore1, match.score1 > match.score2, locals.player1);
+					elo2 = elo.updateRating(expectedScore2, match.score2 > match.score1, locals.player2);
+
+		            RankingService.recordRankingWithElo(match.player1, match.score1, match.score2, match.score1 > match.score2, elo1);
+		            RankingService.recordRankingWithElo(match.player2, match.score2, match.score2, match.score2 > match.score1, elo2);
+		            return callback(null, true);
+
+            	});
             
         });
 

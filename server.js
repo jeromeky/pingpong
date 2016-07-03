@@ -16,7 +16,7 @@ var moment = require('moment');
 
 
 var Match     = require('./app/models/match');
-var Ranking     = require('./app/models/ranking');
+var Ranking     = require('./app/models/rankingv2');
 var News     = require('./app/models/news');
 var Kudos     = require('./app/models/kudos');
 
@@ -100,7 +100,7 @@ router.route('/pingpong')
 
 				break;
 			case 'top10' :
-		    	Ranking.find({}).sort({totalPoints:-1}).limit(10).execFind(function(err, rankings) {
+		    	Ranking.find({}).sort({elo:-1, pointsDifference:-1}).limit(10).execFind(function(err, rankings) {
 		            if (err)
 		                res.send(err);
 
@@ -111,11 +111,11 @@ router.route('/pingpong')
 
 		            	rank.numWin = (rank.numWin == null) ? 0 : rank.numWin;
 		            	rank.numLost = (rank.numLost == null) ? 0 : rank.numLost;
-		            	rank.totalPoints = (rank.totalPoints == null) ? 0 : rank.totalPoints;
+		            	rank.elo = (rank.elo == null) ? 0 : rank.elo;
 
 		            	upperCaseName = rank.player.charAt(0).toUpperCase() + rank.player.slice(1);
 
-		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsDifference, rank.totalPoints);
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsDifference, rank.elo);
 		            });
 
 		            message += '</table>';

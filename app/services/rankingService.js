@@ -1,5 +1,9 @@
 var Match     = require('../models/match');
-var Ranking     = require('../models/ranking');
+var Ranking     = require('../models/rankingv2');
+
+var elo = require('elo-rank');
+
+var DEFAULT_ELO = 1000;
 
 var RankingService	 = function () {
 
@@ -61,6 +65,53 @@ var RankingService	 = function () {
 
 	}
 
+	var _recordRankingWithElo = function(namePlayer, pointsFor, pointsAgainst, hasWon, elo) {
+
+		Ranking.findOne({playerLower : namePlayer.toLowerCase()}, function(err, ranking) {
+			if(err)
+				return;
+
+        	if(ranking == null || ranking.length == 0) {
+		        var ranking = new Ranking();
+		        ranking.player = namePlayer;
+		        ranking.playerLower = namePlayer.toLowerCase();
+
+				ranking.numDefeat = 0;
+		       	ranking.elo = elo;
+		       	ranking.numWin = 0;
+
+	        	ranking.pointsFor = pointsFor;
+	        	ranking.pointsAgainst = pointsAgainst;
+	        	ranking.pointsDifference = pointsFor - pointsAgainst;
+
+		        if(hasWon) {
+		        	ranking.numWin = 1;	
+		        } else {
+		        	ranking.numDefeat = 1;
+		        }
+		        
+		        ranking.save();
+        	} else {
+
+	        	ranking.pointsFor += pointsFor;
+	        	ranking.pointsAgainst += pointsAgainst;
+	        	ranking.pointsDifference += pointsFor - pointsAgainst;
+	        	ranking.elo = elo;
+
+        		if(hasWon) {
+        			ranking.numWin += 1;
+        		} else {
+        			ranking.numDefeat +=1;
+        		}
+
+        		ranking.save();
+        	}
+
+        });
+
+	}
+
+
 	var _updateRanking = function(player, hasWon, pointsFor, pointsAgainst) {
 		Ranking.findOne({player : player}, function(err, ranking) {
 			if(err)
@@ -90,9 +141,25 @@ var RankingService	 = function () {
 		});
 	}
 
+	var _getPlayerElo = function (playerName, callback) {
+		Ranking.findOne({playerLower : playerName.toLowerCase()}, function(err, ranking) {
+			if(err) {
+				return callback(null, DEFAULT_ELO);
+			}
+
+			if(!ranking) {
+				return callback(null, DEFAULT_ELO);
+			}
+
+			return callback(null, ranking.elo);
+		});
+	}
+
 	return {
 		recordRanking : _recordRanking,
 		updateRanking : _updateRanking,
+		getPlayerElo : _getPlayerElo,
+		recordRankingWithElo : _recordRankingWithElo,
 	}
 }();
 

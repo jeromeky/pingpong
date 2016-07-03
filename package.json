@@ -11,6 +11,7 @@
         "mocha-mongoose":"1.1.1",
         "utf8":"2.1.1",
         "sendgrid": "^1.9.2",
-        "moment": "2.13.0"
+        "moment": "2.13.0",
+        "elo-rank": "1.0.0"
     }
 }
