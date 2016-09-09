@@ -125,6 +125,32 @@ router.route('/pingpong')
 		        });
 
 				break;
+			case 'top20' :
+		    	Ranking.find({}).sort({elo:-1, pointsDifference:-1}).limit(20).execFind(function(err, rankings) {
+		            if (err)
+		                res.send(err);
+
+		            var message = '<table><tr><th><strong>Player</strong></th><th>Win</th><th>Def</th><th>+/-</th><th>Pts</th>';
+		            rankings.forEach(function(rank) {
+
+		            	message += '';
+
+		            	rank.numWin = (rank.numWin == null) ? 0 : rank.numWin;
+		            	rank.numLost = (rank.numLost == null) ? 0 : rank.numLost;
+		            	rank.elo = (rank.elo == null) ? 0 : rank.elo;
+
+		            	upperCaseName = rank.player.charAt(0).toUpperCase() + rank.player.slice(1);
+
+		            	message += util.format('</tr><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>', upperCaseName, rank.numWin, rank.numDefeat, rank.pointsDifference, rank.elo);
+		            });
+
+		            message += '</table>';
+
+					res.json({message_format : 'html', message : message});
+
+		        });
+
+				break;
 			case 'history' :
 
 
