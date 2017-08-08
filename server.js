@@ -309,7 +309,7 @@ router.route('/kudos')
         
 		var values = ['customer','solution','iterate','data','guru','different','nurture'];
 		var valuesToShow = ['(customer)','(solution)','(iterate)','(data)','(guru)','(different)','(nurture)'];
-		var maxKudosPerMonth = 3;
+		var maxKudosPerMonth = 5;
 
     	var message = req.body.item.message.message;
 		var split = message.split(' ');
